@@ -1,4 +1,5 @@
 from src.Client import Client
+from src.utils.item_price import item_price
 
 
 email = "melis.luca2014@gmail.com"
@@ -12,5 +13,21 @@ user_id = access_data['user_id']
 client = Client(access_token, refresh_token, user_id, email)
 
 items_faved = client.get_faved_item(with_stock=False)
-print(items_faved)
 
+
+for store in items_faved:
+    item = store['item']['item_id']
+    print(item)
+    minor_units = store['item']['price_including_taxes']['minor_units']
+    decimal = store['item']['price_including_taxes']['decimals']
+    price = item_price(minor_units, decimal)
+    store_id = store['store']['store_id']
+    store_name = store['store']['store_name']
+
+    items_available = store['items_available']
+    new_item = store['new_item'] #true/false
+    
+    print("%s [%s]" % (store_name, store_id))
+    print("Prezzo: %s€" % price)
+    print("Magicbox disponibili: %s" % items_available)
+    print("\n--------------")
