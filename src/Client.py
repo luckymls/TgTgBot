@@ -24,11 +24,15 @@ class Client:
         self.user_id = user_id
         self.email = email
 
+        
+        
         self._user_agent = random.choice(Client.U_A)
         self.session = requests.Session()
         self.session.headers = self._headers
 
         self.logged_in = False
+        if self.access_token and self.refresh_token and self.user_id:
+            self.logged_in=True
         self.token_was_refreshed_at = None
     
     @property
@@ -117,6 +121,7 @@ class Client:
                 continue
             elif response.status_code == 200:
                 print("Successfully logged in")
+                self.logged_in=True
                 r = response.json()
                 self.access_token = r["access_token"]
                 self.refresh_token = r["refresh_token"]
