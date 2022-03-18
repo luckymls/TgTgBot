@@ -15,6 +15,7 @@ class Client:
     FETCH_ENDPOINT = BASE+"auth/v3/token/refresh"
     LOGIN_ENDPOINT = BASE+"auth/v3/authByEmail"
     POLLING_ENDPOINT = BASE+"auth/v3/authByRequestPollingId"
+    ITEM_ENDPOINT = BASE+"item/v7/"
 
     def __init__(self, access_token=None, refresh_token=None, user_id=None, email=None):
         
@@ -24,8 +25,8 @@ class Client:
         self.email = email
 
         self._user_agent = random.choice(Client.U_A)
-        self._session = requests.Session()
-        self._session.headers = self._headers
+        self.session = requests.Session()
+        self.session.headers = self._headers
 
         self.logged_in = False
         self.token_was_refreshed_at = None
@@ -42,6 +43,20 @@ class Client:
             headers["authorization"] = "Bearer "+self.access_token
         return headers 
 
+    def get_credentials(self):
+        self.login()
+        return {
+            "access_token": self.access_token,
+            "refresh_token": self.refresh_token,
+            "user_id": self.user_id
+        }
+    
+
+    @property
+    def refresh_token_valid(self):
+        if self.token_was_refreshed_at and (datetime.datetime.now() - self.token_was_refreshed_at).seconds <= 14400:
+            return True
+        return False
 
     def fetch_new_token(self):
         
@@ -60,7 +75,9 @@ class Client:
     def login(self):
         
         if self.logged_in:
-            self.fetch_new_token()
+            if self.refresh_token_valid == False:
+                print("Refreshing token...")
+                self.fetch_new_token()
 
         else:
 
@@ -113,3 +130,26 @@ class Client:
                     print("Generic error: "+str(response.content))
 
         print("Too many retries. You have to be faster checking your mailbox. Retry in few minutes.")
+
+
+
+    def get_faved_item(self, with_stock=False):
+        self.login()
+
+        payload = {
+            "user_id": self.user_id,
+            "origin": {"latitude": 0.0, "longitude": 0.0},
+            "radius": 21,
+            "with_stock_only": with_stock,
+            "favorites_only": True,
+            "hidden_only": False,
+            "we_care_only": False,
+            "discover": False,
+            "page_size": 20,
+            "page": 1,
+        }
+        response = self.session.post(Client.ITEM_ENDPOINT, json=payload, headers=self._headers)
+        if response.status_code == 200:
+            return response.json()["items"]
+        else:
+            print("Error fetching user faved magicbox: "+str(response.content))
