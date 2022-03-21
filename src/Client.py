@@ -80,7 +80,6 @@ class Client:
         
         if self.logged_in:
             if self.refresh_token_valid == False:
-                print("Refreshing token...")
                 self.fetch_new_token()
 
         else:
@@ -158,3 +157,17 @@ class Client:
             return response.json()["items"]
         else:
             print("Error fetching user faved magicbox: "+str(response.content))
+
+
+    def get_item(self, item_id):
+        self.login()
+
+        payload = {
+            "user_id": self.user_id,
+            "origin": None}
+        response = self.session.post(Client.ITEM_ENDPOINT+str(item_id), json=payload, headers=self._headers)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print("Error fetching item with id: "+ str(item_id))

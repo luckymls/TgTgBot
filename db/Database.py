@@ -10,9 +10,14 @@ class Database:
         self.cur = self.conn.cursor()
 
         try:
+            self.query('''CREATE TABLE queue (user_id, item_id, last_value)''')
+        except:
+            print("Tabella queue exists!")
+
+        try:
             self.query('''CREATE TABLE utenti (user_id, email, token, r_token, tgtg_id)''')
         except:
-            print("User table already exists!")
+            print("Tabella utenti esiste")
 
         
     def fetch(self, q):

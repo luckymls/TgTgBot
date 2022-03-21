@@ -22,6 +22,8 @@ class Tg:
 
     def msgData(self, msg):
         content_type, chat_type, chat_id = telepot.glance(msg)
-        text = msg['text']
+
+        if "text" in msg:
+            text = msg['text']
         return (content_type, chat_id, text)
     
